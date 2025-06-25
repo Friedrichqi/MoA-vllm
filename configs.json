@@ -2,59 +2,59 @@
     "proposer": {
         "layer1": {
             "1":{
-                "model": "/data/home/qyjh/hf_models/Llama-3.1-8B-Instruct",
+                "model": "Qwen/Qwen2.5-7B-Instruct",
                 "prompt": "You are a helpful assistant. Basing on [responses], answer the question: [input_prompts]",
                 "temperature": 0.7,
                 "top_p": 0.9,
-                "max_tokens": 2048
+                "max_tokens": 1024
             },
             "2":{
-                "model": "/data/home/qyjh/hf_models/Llama-3.1-8B-Instruct",
+                "model": "Qwen/Qwen2.5-7B-Instruct",
                 "prompt": "You are a helpful assistant. Basing on [responses], answer the question: [input_prompts]",
                 "temperature": 0.7,
                 "top_p": 0.9,
-                "max_tokens": 2048
+                "max_tokens": 1024
             },
             "3":{
-                "model": "/data/home/qyjh/hf_models/Llama-3.1-8B-Instruct",
+                "model": "Qwen/Qwen2.5-7B-Instruct",
                 "prompt": "You are a helpful assistant. Basing on [responses], answer the question: [input_prompts]",
                 "temperature": 0.7,
                 "top_p": 0.9,
-                "max_tokens": 2048
+                "max_tokens": 1024
             }
         },
         "layer2": {
             "1":{
-                "model": "/data/home/qyjh/hf_models/Llama-3.1-8B-Instruct",
+                "model": "Qwen/Qwen2.5-7B-Instruct",
                 "prompt": "You are a helpful assistant. Basing on [responses], answer the question: [input_prompts]",
                 "temperature": 0.7,
                 "top_p": 0.9,
-                "max_tokens": 2048
+                "max_tokens": 1024
             },
             "2":{
-                "model": "/data/home/qyjh/hf_models/Llama-3.1-8B-Instruct",
+                "model": "Qwen/Qwen2.5-7B-Instruct",
                 "prompt": "You are a helpful assistant. Basing on [responses], answer the question: [input_prompts]",
                 "temperature": 0.7,
                 "top_p": 0.9,
-                "max_tokens": 2048
+                "max_tokens": 1024
             },
             "3":{
-                "model": "/data/home/qyjh/hf_models/Llama-3.1-8B-Instruct",
+                "model": "Qwen/Qwen2.5-7B-Instruct",
                 "prompt": "You are a helpful assistant. Basing on [responses], answer the question: [input_prompts]",
                 "temperature": 0.7,
                 "top_p": 0.9,
-                "max_tokens": 2048
+                "max_tokens": 1024
             }
         } 
     },
     "aggregator": {
         "layer1":{
             "1":{
-                "model": "/data/home/qyjh/hf_models/DeepSeek-R1-Distill-Qwen-7B",
+                "model": "Qwen/Qwen2.5-7B-Instruct",
                 "prompt": "You have been provided with a set of responses from various open-source models to the latest user query. Your task is to synthesize these responses into a single, high-quality response. It is crucial to critically evaluate the information provided in these responses, recognizing that some of it may be biased or incorrect. Your response should not simply replicate the given answers but should offer a refined, accurate, and comprehensive reply to the instruction. Ensure your response is well-structured, coherent, and adheres to the highest standards of accuracy and reliability. \n Responses from models:\n\n[responses]\n\n Synthesized answer for the question, [input_prompts], should be:\n",
                 "temperature": 0.7,
                 "top_p": 0.9,
-                "max_tokens": 2048
+                "max_tokens": 1024
             }
         }
     }

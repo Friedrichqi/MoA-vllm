@@ -78,8 +78,8 @@ def main():
     parser.add_argument(
         "--max_model_length", "-ml",
         type=int,
-        default=8192,
-        help="max input and output tokens for model (default: 8192)"
+        default=16384,
+        help="max input and output tokens for model (default: 16384)"
     )
     args =  parser.parse_args() 
 
