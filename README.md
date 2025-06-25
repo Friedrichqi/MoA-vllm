@@ -1,6 +1,6 @@
 # Mixture-of-Agents with vLLM
 
-This repository provides an implementation of the Mixture-of-Agents (MoA) architecture, leveraging `vLLM` for high-performance inference. The system uses a multi-stage process with "proposer" and "aggregator" agents to generate refined responses to user prompts.
+This repository provides an implementation of the Mixture-of-Agents (MoA) architecture [Original Repo]: https://github.com/togethercomputer/MoA.git, leveraging `vLLM` for high-performance inference. The system uses a multi-stage process with "proposer" and "aggregator" agents to generate refined responses to user prompts.
 
 ## Installation
 
