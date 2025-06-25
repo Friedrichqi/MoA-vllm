@@ -31,47 +31,23 @@ python MoA-vllm/start_server.py
 
 ```
 
-
-
 The script accepts the following optional arguments:
-
-
 
 -   `--base-port`: The starting port for the servers. Defaults to `8000`.
 
 -   `--dtype`: The data type for the model. Defaults to `bfloat16`.
 
 -   `--max_model_length`: The maximum model length for vLLM. Defaults to `16384`.
-
-
-
 ### Step 3: Run the MoA Pipeline
 
-
-
-Once the servers are running, you can execute the MoA pipeline using 
-
-
-
-moa.py
-
-
-
-.
-
-
+Once the servers are running, you can execute the MoA pipeline using moa.py.
 
 ```bash
 
 python MoA-vllm/moa.py --prompt "Your question here"
 
 ```
-
-
-
 The script takes the following arguments:
-
-
 
 -   `--prompt`: (Required) The user prompt you want to ask the MoA.
 
