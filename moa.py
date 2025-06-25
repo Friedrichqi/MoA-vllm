@@ -3,7 +3,6 @@ import asyncio
 import json
 from typing import Dict
 import httpx
-from rich import print as rprint
 
 async def complete_prompt(
     base_url: str,

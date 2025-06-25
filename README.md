@@ -2,6 +2,14 @@
 
 This repository provides an implementation of the Mixture-of-Agents (MoA) architecture, leveraging `vLLM` for high-performance inference. The system uses a multi-stage process with "proposer" and "aggregator" agents to generate refined responses to user prompts.
 
+## Installation
+
+```bash
+conda create -n moa_env python=3.12 -y
+conda activate moa_env
+pip install vllm
+```
+
 ## Key Files
 
 -   **MoA-vllm/configs.json**: The core configuration file for the MoA architecture. Here you define the layers of proposer and aggregator agents, specifying the model and prompt for each.
@@ -27,7 +35,7 @@ Run the start_server.py script to serve all the models required by your configu
 
 ```bash
 
-python MoA-vllm/start_server.py
+python start_server.py
 
 ```
 
@@ -44,7 +52,7 @@ Once the servers are running, you can execute the MoA pipeline using moa.py.
 
 ```bash
 
-python MoA-vllm/moa.py --prompt "Your question here"
+python moa.py --prompt "Your question here"
 
 ```
 The script takes the following arguments:
