@@ -10,34 +10,9 @@ import argparse
 import subprocess
 
 
-def parse_args():
-    parser = argparse.ArgumentParser(
-        description="Launch vLLM API servers on top-N GPUs sorted by free memory."
-    )
-    parser.add_argument(
-        "--num-servers", "-n",
-        type=int,
-        default=1,
-        help="Number of servers to launch (default: 1)"
-    )
-    parser.add_argument(
-        "--base-port", "-p",
-        type=int,
-        default=8000,
-        help="Base port number (default: 8000)"
-    )
-    parser.add_argument(
-        "--dtype", "-d",
-        type=str,
-        default="bfloat16",
-        help="Data type for model (default: bfloat16)"
-    )
-    return parser.parse_args()
-
-
 def get_gpus():
     """
-    Query NVIDIA GPUs and return the top-N GPU indices sorted by free memory (descending).
+    Query NVIDIA GPUs and return the GPU indices sorted by free memory (descending).
     """
     try:
         output = subprocess.check_output(
@@ -60,61 +35,82 @@ def get_gpus():
     return selected
 
 
-def launch_servers(gpu_list, base_port, model_path, dtype):
+def launch_servers(gpu_list, model2port, dtype):
     """
     Launch a vLLM server on each GPU in gpu_list.
     """
     processes = []
-    for i, gpu_id in enumerate(gpu_list):
-        port = base_port + i
-        print(f"Starting server on GPU {gpu_id}, port {port}")
+    for i, (model, port) in enumerate(model2port.items()):
+        print(f"Starting server on GPU {gpu_list[i]}, port: {port}, model: {model}")
         env = os.environ.copy()
-        env["CUDA_VISIBLE_DEVICES"] = str(gpu_id)
+        env["CUDA_VISIBLE_DEVICES"] = str(gpu_list[i])
 
         cmd = [
             sys.executable, "-m", "vllm.entrypoints.openai.api_server",
-            "--model", model_path,
+            "--model", model,
             "--port", str(port),
-            "--dtype", dtype
+            "--dtype", dtype,
         ]
         p = subprocess.Popen(cmd, env=env)
         processes.append(p)
 
-    # Wait for all servers to exit
     for p in processes:
         p.wait()
 
 
 def main():
-    args = parse_args()
+    parser = argparse.ArgumentParser(
+        description="Launch vLLM API servers on GPUs sorted by free memory."
+    )
+    parser.add_argument(
+        "--base-port", "-p",
+        type=int,
+        default=8000,
+        help="Base port number (default: 8000)"
+    )
+    parser.add_argument(
+        "--dtype", "-d",
+        type=str,
+        default="bfloat16",
+        help="Data type for model (default: bfloat16)"
+    )
+    # parser.add_argument(
+    #     "--max_tokens", "-mt",
+    #     type=int,
+    #     default="256",
+    #     help="max tokens for model (default: 256)"
+    # )
+    args =  parser.parse_args() 
 
-    id = 0
-    ip_address = {}
+    idx = 0
+    model2port = {}
+    # max_tokens = args.max_tokens
     with open("configs.json", "r") as f:
         configs = json.load(f)
     
     for _, layer in configs["proposer"].items():
         for _, layer_proposer in layer.items():
-            if layer_proposer['model'] not in ip_address:
-                ip_address[layer_proposer['model']] = f"http://localhost:{args.base_port + id}"
-                id += 1
+            if layer_proposer['model'] not in model2port:
+                model2port[layer_proposer['model']] = args.base_port + idx
+                idx += 1
+                # max_tokens = max(max_tokens, layer_proposer['max_tokens'])
     for _, layer in configs["aggregator"].items():
         for _, layer_aggregator in layer.items():
-            if layer_aggregator['model'] not in ip_address:
-                ip_address[layer_aggregator['model']] = f"http://localhost:{args.base_port + id}"
-                id += 1
-    # # Print the IP addresses for each model
-    # print("IP addresses for each model:")
-    # for model, ip in ip_address.items():
-    #     print(f"{model}: {ip}")
+            if layer_aggregator['model'] not in model2port:
+                model2port[layer_aggregator['model']] = args.base_port + idx
+                idx += 1
+                # max_tokens = max(max_tokens, layer_proposer['max_tokens'])
+
+    # Save model2port LUT into a JSON file
+    with open("model2port.json", "w") as f:
+        json.dump(model2port, f, indent=4)
 
 
     # Get all available GPUs and sort them by free memory
     gpu_list = get_gpus()
 
-
     # Launch the servers
-    launch_servers(gpu_list, args.base_port, args.model_path, args.dtype)
+    launch_servers(gpu_list, model2port, args.dtype)
 
 
 if __name__ == "__main__":
