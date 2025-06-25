@@ -35,7 +35,7 @@ def get_gpus():
     return selected
 
 
-def launch_servers(gpu_list, model2port, dtype):
+def launch_servers(gpu_list, model2port, dtype, max_model_length):
     """
     Launch a vLLM server on each GPU in gpu_list.
     """
@@ -50,6 +50,7 @@ def launch_servers(gpu_list, model2port, dtype):
             "--model", model,
             "--port", str(port),
             "--dtype", dtype,
+            "--max-model-len", str(max_model_length),
         ]
         p = subprocess.Popen(cmd, env=env)
         processes.append(p)
@@ -74,17 +75,16 @@ def main():
         default="bfloat16",
         help="Data type for model (default: bfloat16)"
     )
-    # parser.add_argument(
-    #     "--max_tokens", "-mt",
-    #     type=int,
-    #     default="256",
-    #     help="max tokens for model (default: 256)"
-    # )
+    parser.add_argument(
+        "--max_model_length", "-ml",
+        type=int,
+        default=8192,
+        help="max input and output tokens for model (default: 8192)"
+    )
     args =  parser.parse_args() 
 
     idx = 0
     model2port = {}
-    # max_tokens = args.max_tokens
     with open("configs.json", "r") as f:
         configs = json.load(f)
     
@@ -93,13 +93,11 @@ def main():
             if layer_proposer['model'] not in model2port:
                 model2port[layer_proposer['model']] = args.base_port + idx
                 idx += 1
-                # max_tokens = max(max_tokens, layer_proposer['max_tokens'])
     for _, layer in configs["aggregator"].items():
         for _, layer_aggregator in layer.items():
             if layer_aggregator['model'] not in model2port:
                 model2port[layer_aggregator['model']] = args.base_port + idx
                 idx += 1
-                # max_tokens = max(max_tokens, layer_proposer['max_tokens'])
 
     # Save model2port LUT into a JSON file
     with open("model2port.json", "w") as f:
@@ -110,7 +108,7 @@ def main():
     gpu_list = get_gpus()
 
     # Launch the servers
-    launch_servers(gpu_list, model2port, args.dtype)
+    launch_servers(gpu_list, model2port, args.dtype, args.max_model_length)
 
 
 if __name__ == "__main__":
