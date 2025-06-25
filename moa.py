@@ -78,7 +78,9 @@ import argparse
 import asyncio
 import json
 import textwrap
-from typing import List, Tuple
+from string import Template
+from typing import List, Tuple, Dict
+import openai
 
 import httpx
 from tqdm import tqdm
@@ -90,6 +92,7 @@ async def complete_prompt(
     prompt: str,
     temperature: float = 0.7,
     max_tokens: int = 1024,
+    top_p: float = 0.9,
 ) -> str:
     payload = {
         "model": model,
@@ -97,6 +100,7 @@ async def complete_prompt(
         "temperature": temperature,
         "max_tokens": max_tokens,
         "stream": False,
+        "top_p": top_p,
     }
     headers = {
         "Content-Type": "application/json",
@@ -125,100 +129,102 @@ AGG_TEMPLATE = textwrap.dedent(
 # Orchestrator core
 # ---------------------------------------------------------------------
 async def run_moa(
-    prompt: str,
-    proposer_cfg: List[Tuple[str, str]],
-    aggregator_cfg: List[Tuple[str, str]],
+    input_prompt: str,
+    proposer: Dict[str, Dict[str, Dict]],
+    aggregator: Dict[str, Dict[str, Dict]],
     show_intermediates: bool = False,
 ):
-    """Run a 2-layer MoA (proposers ➜ aggregators) and return the final answer."""
+    """Run a 2-stage MoA system (proposers ➜ aggregators) and return the final answer."""
 
-    # ---------- Layer 1: proposers -----------------------------------
-    proposer_prompt = prompt
+    async def async_query(model_name, prompt, url, temperature=0.7, top_p=0.9, max_tokens=1024):
+        return model_name, await complete_prompt(base_url=url, model=model_name, prompt=prompt, temperature=temperature, max_tokens=max_tokens, top_p=top_p)
 
-    async def _query_proposer(name_url: Tuple[str, str]):
-        name, url = name_url
-        return name, await complete_prompt(url, name, proposer_prompt, temperature=0.7)
+    with open("model2port.json", "r") as f:
+        model2port = json.load(f)
 
+    # ---------- Stage 1: proposers -----------------------------------
     print("\n▸ Collecting proposer responses …")
-    proposer_tasks = [_query_proposer(p) for p in proposer_cfg]
-    proposer_results = await asyncio.gather(*proposer_tasks)
+    # Stores the concatenated output from all proposers in the current layer to be used as context for the next layer.
+    last_layer_output = ""
+    layer_proposer_output = []
+    for layer_name, layer_proposers in proposer.items():
+        
+        proposer_tasks = []
+        for _, proposer_cfg in layer_proposers.items():
+            model_name = proposer_cfg["model"]
+            url = f"http://localhost:{model2port[model_name]}"
+            temperature = proposer_cfg.get("temperature", 0.7)
+            top_p = proposer_cfg.get("top_p", 0.9)
+            max_tokens = proposer_cfg.get("max_tokens", 1024)
+            prompt = proposer_cfg["prompt"].replace("[input_prompts]", input_prompt)
+            prompt = prompt.replace("[responses]", last_layer_output)
+
+            proposer_tasks.append(async_query(model_name, prompt, url, temperature, top_p, max_tokens))
+
+        proposer_results = await asyncio.gather(*proposer_tasks)
+        layer_proposer_output.append([layer_name, proposer_results])
+        last_layer_output = ""
+        for _, text in proposer_results:
+            last_layer_output.join(text)
 
     # Pretty print intermediate outputs if desired
     if show_intermediates:
-        for name, text in proposer_results:
-            print(f"\n--- {name} says ---\n{text}\n")
+        print("Proposer intermediate results:")
+        for layer_name, proposer_results in layer_proposer_output:
+            print(f"{layer_name} Results:\n")
+            for name, text in proposer_results:
+                print(f"\n--- {name} says ---\n{text}\n")
 
-    # ---------- Build aggregator prompt ------------------------------
-    numbered = []
-    for idx, (name, text) in enumerate(proposer_results, start=1):
-        numbered.append(f"{idx}. [{name}]\n{text}\n")
-    agg_context = "\n".join(numbered)
 
-    agg_prompt = AGG_TEMPLATE.format(model_responses=agg_context)
-    aggregator_prompt = agg_prompt + "\nUser query:\n" + prompt
-
-    # ---------- Layer 2+: aggregators --------------------------------
-    async def _query_aggregator(name_url: Tuple[str, str]):
-        name, url = name_url
-        return name, await complete_prompt(url, name, aggregator_prompt, temperature=0.7)
-
+    # ---------- Stage 2: aggregators --------------------------------
     print("\n▸ Synthesising with aggregator(s) …")
-    agg_tasks = [_query_aggregator(a) for a in aggregator_cfg]
-    agg_results = await asyncio.gather(*agg_tasks)
+    layer_aggregator_output = []
+    for layer_name, layer_aggregator in aggregator.items():
+        
+        aggregator_tasks = []
+        for _, aggregator_cfg in layer_aggregator.items():
+            model_name = aggregator_cfg["model"]
+            url = f"http://localhost:{model2port[model_name]}"
+            temperature = aggregator_cfg.get("temperature", 0.7)
+            top_p = aggregator_cfg.get("top_p", 0.9)
+            max_tokens = aggregator_cfg.get("max_tokens", 1024)
+            prompt = aggregator_cfg["prompt"].replace("[input_prompts]", input_prompt)
+            prompt = prompt.replace("[responses]", last_layer_output)
 
-    # If multiple aggregators, just return the first; otherwise extend logic for deeper layers
-    final_name, final_answer = agg_results[0]
+            aggregator_tasks.append(async_query(model_name, prompt, url, temperature, top_p, max_tokens))
 
-    if show_intermediates and len(agg_results) > 1:
-        for name, text in agg_results:
-            print(f"\n=== Aggregator {name} output ===\n{text}\n")
+        aggregator_results = await asyncio.gather(*aggregator_tasks)
+        layer_aggregator_output.append([layer_name, aggregator_results])
+        last_layer_output = ""
+        for _, text in aggregator_results:
+            last_layer_output.join(text)
 
-    return final_name, final_answer
+    # Pretty print intermediate outputs if desired
+    if show_intermediates:
+        print("Aggregator intermediate results:")
+        for layer_name, aggregator_results in layer_aggregator_output:
+            print(f"{layer_name} Results:\n")
+            for name, text in aggregator_results:
+                print(f"\n--- {name} says ---\n{text}\n")
 
-# ---------------------------------------------------------------------
-# CLI glue
-# ---------------------------------------------------------------------
-
-def _parse_agent_list(raw: List[str]) -> List[Tuple[str, str]]:
-    """Turn ["name@url", …] into [(name, url), …] and validate."""
-    parsed = []
-    for entry in raw:
-        if "@" not in entry:
-            raise argparse.ArgumentTypeError(f"Agent spec '{entry}' must be NAME@BASE_URL")
-        name, url = entry.split("@", 1)
-        parsed.append((name, url.rstrip("/")))
-    return parsed
+    return last_layer_output
 
 
 def main():
     parser = argparse.ArgumentParser(description="Run Mixture-of-Agents inference on vLLM servers.")
     parser.add_argument("--prompt", required=True, help="User prompt to ask.")
-    parser.add_argument(
-        "--proposers",
-        required=True,
-        nargs="+",
-        help="Space-separated list of proposer specs NAME@URL, e.g. qwen@http://localhost:8001",
-    )
-    parser.add_argument(
-        "--aggregators",
-        required=True,
-        nargs="+",
-        help="List of aggregator specs NAME@URL (order = layer order).",
-    )
     parser.add_argument("--show", action="store_true", help="Print intermediate agent outputs.")
-
     args = parser.parse_args()
-    proposers = _parse_agent_list(args.proposers)
-    aggregators = _parse_agent_list(args.aggregators)
 
-    final_name, final_answer = asyncio.run(
-        run_moa(args.prompt, proposers, aggregators, show_intermediates=args.show)
+    with open("configs.json", "r") as f:
+        configs = json.load(f)
+
+    final_answer = asyncio.run(
+        run_moa(args.prompt, configs["proposer"], configs["aggregator"], show_intermediates=args.show)
     )
 
     print("\n================ FINAL ANSWER ================\n")
     print(final_answer)
-    print("\n==============================================\n")
-    print(f"(generated by aggregator: {final_name})")
 
 
 if __name__ == "__main__":
