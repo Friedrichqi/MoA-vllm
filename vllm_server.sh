@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Number of servers to launch
-NUM_SERVERS=3
+NUM_SERVERS=1
 # Base port for servers
 BASE_PORT=8000
 # Path to your model
