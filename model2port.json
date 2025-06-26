@@ -1,3 +1,4 @@
 {
-    "Qwen/Qwen2.5-7B-Instruct": 8000
+    "/data/home/qyjh/hf_models/Qwen3-8B": 8000,
+    "/data/home/qyjh/hf_models/DeepSeek-R1-0528-Qwen3-8B": 8001
 }

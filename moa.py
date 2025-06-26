@@ -34,7 +34,7 @@ async def async_query(model_name, prompt, url, temperature=0.7, top_p=0.9, max_t
 
 async def process_stage(stage_name, stage_config, input_prompt, model2port, initial_context, show_intermediates):
     """Helper function to run a single stage (proposer or aggregator)."""
-    print(f"\n▸ Running {stage_name} stage...")
+    # print(f"\n▸ Running {stage_name} stage...")
 
     last_layer_output = initial_context
     stage_output_history = []
