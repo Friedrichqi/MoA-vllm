@@ -11,17 +11,36 @@ class CompletionRequest(BaseModel):
 
 @app.post("/v1/completions")
 async def completions(req: CompletionRequest):
-    text = await run_moa(
-        input_prompt=req.prompt,
-        show_intermediates=False,
-        proposer_config=json.load(open("configs.json"))["proposer"],
-        aggregator_config=json.load(open("configs.json"))["aggregator"],
-    )
+    tasks = [
+        run_moa(
+            input_prompt=p,
+            show_intermediates=False,
+            proposer_config=json.load(open("configs.json"))["proposer"],
+            aggregator_config=json.load(open("configs.json"))["aggregator"],
+        )
+        for p in req.prompt
+    ]
+    texts = await asyncio.gather(*tasks)
+
+    choices = [
+        {
+            "index": i,
+            "text": text,
+            "finish_reason": "stop",
+            "logprobs": None,
+        }
+        for i, text in enumerate(texts)
+    ]
+
     return {
         "object": "text_completion",
-        "choices": [{"text": text}],
-        "usage": {"prompt_tokens": 0, "completion_tokens": len(text.split())},
+        "model": "moa",
+        "choices": choices,
+        "usage": {
+            "prompt_tokens": 0,
+            "completion_tokens": sum(len(t.split()) for t in texts),
+        },
     }
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 9000)))
+    uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 9010)))

@@ -66,8 +66,8 @@ def main():
     parser.add_argument(
         "--base-port", "-p",
         type=int,
-        default=8000,
-        help="Base port number (default: 8000)"
+        default=8010,
+        help="Base port number (default: 8010)"
     )
     parser.add_argument(
         "--dtype", "-d",
