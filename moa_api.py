@@ -11,16 +11,15 @@ class CompletionRequest(BaseModel):
 
 @app.post("/v1/completions")
 async def completions(req: CompletionRequest):
-    tasks = [
-        run_moa(
-            input_prompt=p,
-            show_intermediates=False,
-            proposer_config=json.load(open("configs.json"))["proposer"],
-            aggregator_config=json.load(open("configs.json"))["aggregator"],
-        )
-        for p in req.prompt
-    ]
-    texts = await asyncio.gather(*tasks)
+    with open("configs.json") as f:
+        config = json.load(f)
+    
+    texts = await run_moa(
+        input_prompt=req.prompt,
+        show_intermediates=False,
+        proposer_config=config["proposer"],
+        aggregator_config=config["aggregator"],
+    )
 
     choices = [
         {
@@ -43,4 +42,4 @@ async def completions(req: CompletionRequest):
     }
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 9010)))
+    uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 9000)))
