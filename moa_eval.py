@@ -153,9 +153,9 @@ def main(args):
         return
 
     # Fetching few-shot learning samples
+    few_shots = []
     if args.few_shots > 0:
         with open(os.path.join("benchmark", f"{args.benchmark}_train.jsonl")) as f:
-            few_shots = []
             for id, line in enumerate(f.readlines()):
                 if id >= args.few_shots:
                     break
