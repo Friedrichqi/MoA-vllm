@@ -19,7 +19,7 @@ async def complete_prompt(
         "max_tokens": max_tokens,
         "stream": False,
         "top_p": top_p,
-        "repetition_penalty": 1.2,
+        "repetition_penalty": 1.05,
     }
     headers = {
         "Content-Type": "application/json",

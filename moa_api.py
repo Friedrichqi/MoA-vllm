@@ -1,7 +1,7 @@
 import uvicorn, asyncio, os, json
 from fastapi import FastAPI
 from pydantic import BaseModel
-from vllm_MoA.moa_chat import run_moa
+from moa_chat import run_moa
 
 app = FastAPI()
 

@@ -1,4 +1,4 @@
 {
-    "/data/home/qyjh/hf_models/Qwen3-8B": 8010,
-    "/data/home/qyjh/hf_models/DeepSeek-R1-0528-Qwen3-8B": 8011
+    "Qwen/Qwen3-8b": 8010,
+    "deepseek-ai/DeepSeek-R1-0528-Qwen3-8B": 8011
 }
