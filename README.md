@@ -138,7 +138,16 @@ The script takes the following arguments:
 python moa_api.py
 
 ```
-- It has a default port of 9000.
+- It has a default port of 9000 and then you are curl using
+
+```bash
+curl -X POST http://localhost:9000/v1/completions \
+     -H "Content-Type: application/json" \
+     -d '{ \
+           "model": "moa", \
+           "prompt": "Tell me a joke." \
+         }'
+```
 
 ## Evaluate with EleutherAI/lm-evaluation-harness
 
