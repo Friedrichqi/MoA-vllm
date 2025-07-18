@@ -81,7 +81,7 @@ def main():
         default=None,
         help="max input tokens for model (default: use model default)"
     )
-    args =  parser.parse_args() 
+    args =  parser.parse_args()
 
     idx = 0
     model2port = {}
