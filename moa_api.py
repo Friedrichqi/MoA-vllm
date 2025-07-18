@@ -23,12 +23,11 @@ async def completions(req: CompletionRequest):
 
     choices = [
         {
-            "index": i,
-            "text": text,
+            "index": 0,
+            "text": texts.strip(),
             "finish_reason": "stop",
             "logprobs": None,
         }
-        for i, text in enumerate(texts)
     ]
 
     return {

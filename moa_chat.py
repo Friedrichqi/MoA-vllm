@@ -25,9 +25,8 @@ async def complete_prompt(
         "Content-Type": "application/json",
         "Authorization": "Bearer EMPTY",
     }
-    async with httpx.AsyncClient(timeout=1200) as client:
+    async with httpx.AsyncClient(timeout=None) as client:
         resp = await client.post(f"{base_url}/v1/completions", headers=headers, json=payload)
-        resp.raise_for_status()
         return resp.json()["choices"][0]["text"].strip()
 
 async def async_query(model_name, prompt, url, temperature=0.7, top_p=0.9, max_tokens=1024):
