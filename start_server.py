@@ -44,14 +44,14 @@ def launch_servers(gpu_list, model2port, dtype, max_model_length):
         print(f"Starting server on GPU {gpu_list[i]}, port: {port}, model: {model}")
         env = os.environ.copy()
         env["CUDA_VISIBLE_DEVICES"] = str(gpu_list[i])
-
         cmd = [
             sys.executable, "-m", "vllm.entrypoints.openai.api_server",
             "--model", model,
             "--port", str(port),
             "--dtype", dtype,
-            "--max-model-len", str(max_model_length),
         ]
+        if max_model_length is not None:
+            cmd.extend(["--max-model-len", str(max_model_length)])
         p = subprocess.Popen(cmd, env=env)
         processes.append(p)
 
@@ -78,8 +78,8 @@ def main():
     parser.add_argument(
         "--max_model_length", "-ml",
         type=int,
-        default=16384,
-        help="max input tokens for model (default: 16384)"
+        default=None,
+        help="max input tokens for model (default: use model default)"
     )
     args =  parser.parse_args() 
 
