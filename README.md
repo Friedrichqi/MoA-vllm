@@ -163,7 +163,7 @@ lm_eval --model  local-completions --model_args  "model=moa,base_url=http://0.0.
 - --wandb_args requires special installment and is totally optional to provide you with finer process of the evaluation.
 
 ## Known Bugs:
-- TimeoutError: raise asyncio.TimeoutError from exc_val. It has something to do with the api server doesn't respond in some time. Decrease num_concurrent to 1 might help.
+- TimeoutError: raise asyncio.TimeoutError from exc_val. It has something to do with the api server doesn't respond in some time. Decrease num_concurrent to 1 or decrease max_tokens in config.json to contrain output length might help.
 
 - CUDA out of memory: If you are sure you can serve your model under the precision type set in advance in start_server.py, then it should be vLLM preserving too much memory for KV Cache. Manually set max model length to a smaller value when starting moa agents through
 

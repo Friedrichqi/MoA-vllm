@@ -6,21 +6,21 @@
                 "prompt": "You are a helpful assistant. Basing on [responses], answer the question: [input_prompts]",
                 "temperature": 0.7,
                 "top_p": 0.9,
-                "max_tokens": 2048
+                "max_tokens": 1024
             },
             "2":{
                 "model": "Qwen/Qwen3-8B",
                 "prompt": "You are a helpful assistant. Basing on [responses], answer the question: [input_prompts]",
                 "temperature": 0.7,
                 "top_p": 0.9,
-                "max_tokens": 2048
+                "max_tokens": 1024
             },
             "3":{
                 "model": "Qwen/Qwen3-8B",
                 "prompt": "You are a helpful assistant. Basing on [responses], answer the question: [input_prompts]",
                 "temperature": 0.7,
                 "top_p": 0.9,
-                "max_tokens": 2048
+                "max_tokens": 1024
             }
         },
         "layer2": {
@@ -29,21 +29,21 @@
                 "prompt": "You are a helpful assistant. Basing on [responses], answer the question: [input_prompts]",
                 "temperature": 0.7,
                 "top_p": 0.9,
-                "max_tokens": 2048
+                "max_tokens": 1024
             },
             "2":{
                 "model": "Qwen/Qwen3-8B",
                 "prompt": "You are a helpful assistant. Basing on [responses], answer the question: [input_prompts]",
                 "temperature": 0.7,
                 "top_p": 0.9,
-                "max_tokens": 2048
+                "max_tokens": 1024
             },
             "3":{
                 "model": "Qwen/Qwen3-8B",
                 "prompt": "You are a helpful assistant. Basing on [responses], answer the question: [input_prompts]",
                 "temperature": 0.7,
                 "top_p": 0.9,
-                "max_tokens": 2048
+                "max_tokens": 1024
             }
         } 
     },
